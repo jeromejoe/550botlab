@@ -21,7 +21,7 @@ void ParticleFilter::initializeFilterAtPose(const pose_xyt_t& pose)
 
     std::random_device rd;
     std::mt19937 generator(rd());
-    std::normal_distribution<> dist(0.0, 0.01);
+    std::normal_distribution<> dist(0.0, 0.001);
     // std::normal_distribution<> dist_theta(0.0, 0.001);
 
     for (auto& p : posterior_)
@@ -52,22 +52,6 @@ pose_xyt_t ParticleFilter::updateFilter(const pose_xyt_t&      odometry,
         auto proposal = computeProposalDistribution(prior);  // action model
         posterior_ = computeNormalizedPosterior(proposal, laser, map);  // sensor model
         posteriorPose_ = estimatePosteriorPose(posterior_);
-
-        // auto proposal = computeProposalDistribution(posterior_);
-        // posterior_ = proposal;
-        // double sumWeight = 0;
-        // for (auto& p : posterior_)
-        // {
-        //     p.weight = sensorModel_.likelihood(p, laser, map);
-        //     // std::cout << like << std::endl;
-        //     sumWeight += p.weight;
-        // }
-        // for (auto& p : posterior_)
-        // {
-        //     p.weight = p.weight / sumWeight;
-        //     std::cout << p.weight << std::endl;
-        // }
-        // std::cout<<"****************************"<<std::endl;
     }   
     
     posteriorPose_.utime = odometry.utime;

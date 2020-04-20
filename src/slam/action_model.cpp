@@ -9,7 +9,7 @@
 ActionModel::ActionModel(void)
 : initialized_(false)
 , alpha1_(0.01f)   //0.01
-, alpha2_(0.1f)    //0.1
+, alpha2_(0.01f)    //0.1
 , alpha3_(0.0025f) //0.0025
 , alpha4_(0.0001f) //0.0001
 {

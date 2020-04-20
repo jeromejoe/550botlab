@@ -77,6 +77,15 @@ bool MotionPlanner::isPathSafe(const robot_path_t& path) const
 
     ///////////// TODO: Implement your test for a safe path here //////////////////
 
+    for (auto& pose : path.path)
+    {
+        auto poseCell = global_position_to_grid_cell(Point<double>(pose.x, pose.y), distances_);
+        if (distances_(poseCell.x, poseCell.y) <= 5*params_.robotRadius)
+        {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -89,7 +98,9 @@ void MotionPlanner::setMap(const OccupancyGrid& map)
 
 void MotionPlanner::setParams(const MotionPlannerParams& params)
 {
-    searchParams_.minDistanceToObstacle = params_.robotRadius;
-    searchParams_.maxDistanceWithCost = 10.0 * searchParams_.minDistanceToObstacle;
-    searchParams_.distanceCostExponent = 1.0;
+    // searchParams_.minDistanceToObstacle = 2*params_.robotRadius;
+    searchParams_.minDistanceToObstacle = 0.1;
+    // searchParams_.maxDistanceWithCost = 10 * searchParams_.minDistanceToObstacle;
+    searchParams_.maxDistanceWithCost = 0.35;
+    searchParams_.distanceCostExponent = 1;
 }

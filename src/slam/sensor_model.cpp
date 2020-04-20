@@ -43,7 +43,12 @@ double SensorModel::scoreRay(const adjusted_ray_t& ray, const OccupancyGrid& map
     // std::cout << int(tempOdds) << std::endl;
     
     // apply simplified likelihood field model
-    if (std::abs(Odds) < 10)
+    if (Odds >= 80)
+    {
+        return Odds;
+    }
+
+    else if (Odds < 80)
     {
         //take one step closer to the origin
         Point<int> rayEnd1;
@@ -55,16 +60,9 @@ double SensorModel::scoreRay(const adjusted_ray_t& ray, const OccupancyGrid& map
         if (map.isCellInGrid(rayEnd1.x, rayEnd1.y))
             Odds1 = static_cast<int>(map(rayEnd1.x, rayEnd1.y));
 
-        if (Odds1 >= 10)
-            return Odds1;
-    }
+        if (Odds1 >= 80)
+            return 0.3 * Odds1;
 
-    if (Odds >= 10)
-    {
-        return Odds;
-    }
-    else if (Odds <= -10)
-    {
         //take one step further and check if occupied there
         Point<int> rayEnd2;
         rayEnd2.x = static_cast<int>(
@@ -75,8 +73,8 @@ double SensorModel::scoreRay(const adjusted_ray_t& ray, const OccupancyGrid& map
         if (map.isCellInGrid(rayEnd2.x, rayEnd2.y))
             Odds2 = static_cast<int>(map(rayEnd2.x, rayEnd2.y));
 
-        if (Odds2 >= 10)
-            return Odds2;
+        if (Odds2 >= 80)
+            return 0.5 * Odds2;
     }
 
     return 0.0;
