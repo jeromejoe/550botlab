@@ -150,15 +150,16 @@ std::vector<particle_t> ParticleFilter::computeNormalizedPosterior(const std::ve
     for (auto& p : posterior)
     {
         p.weight = sensorModel_.likelihood(p, laser, map);
-        // std::cout << like << std::endl;
+        std::cout << p.weight << std::endl;
         sumWeight += p.weight;
     }
+    std::cout << "********************************************\n";
     for (auto& p : posterior)
     {
         p.weight = p.weight / sumWeight;
-        // std::cout << p.weight << std::endl;
+        std::cout << p.weight << std::endl;
     }
-    // std::cout<<"****************************"<<std::endl;
+    std::cout<<"---------------------------------------------"<<std::endl;
 
     return posterior;
 }

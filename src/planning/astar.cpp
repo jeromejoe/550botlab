@@ -30,7 +30,7 @@ struct PathNode
 };
 
 bool isNodeInList(PathNode& node, std::vector<PathNode>& list);
-PathNode getNodeFromList(PathNode& node, std::vector<PathNode>& list);
+PathNode& getNodeFromList(PathNode& node, std::vector<PathNode>& list);
 float calHCost(PathNode& node, PathNode& goal, const ObstacleDistanceGrid& grid);
 void expandNode(PathNode &node,
                 PathNode &goalNode,
@@ -103,7 +103,7 @@ robot_path_t search_for_path(pose_xyt_t start,
         path.path.push_back(goal);
 
         std::cout << "***************" << path.path.size() << std::endl;
-        for (int j = 0; j<path.path.size(); j++)
+        for (int j = 0; j<int(path.path.size()); j++)
             std::cout << path.path[j].x << " " << path.path[j].y << " " << path.path[j].theta << std::endl;
     }
     else
@@ -127,7 +127,7 @@ bool isNodeInList(PathNode& node, std::vector<PathNode>& list)
     return false;
 }
 
-PathNode getNodeFromList(PathNode& node, std::vector<PathNode>& list)
+PathNode& getNodeFromList(PathNode& node, std::vector<PathNode>& list)
 {
     if (isNodeInList(node, list))
     {   
@@ -139,6 +139,7 @@ PathNode getNodeFromList(PathNode& node, std::vector<PathNode>& list)
             }
         }
     }
+    return node;
 }
 
 void expandNode(PathNode &node,
@@ -154,14 +155,14 @@ void expandNode(PathNode &node,
     for (int i = 0; i < 4; i++)
     {
         PathNode neighbor;
-        neighbor.gCost = 0;
+        neighbor.gCost = node.gCost;
         neighbor.hCost = 0;
         neighbor.cell.x = node.cell.x + xDeltas[i];
         neighbor.cell.y = node.cell.y + yDeltas[i];
-        if (isNodeInList(neighbor, searchedList))
-        {
-            neighbor = getNodeFromList(neighbor, searchedList);
-        }
+        // if (isNodeInList(neighbor, searchedList))
+        // {
+        //     neighbor = getNodeFromList(neighbor, searchedList);
+        // }
         if ((!isNodeInList(neighbor, closedList)) 
             && (distances(neighbor.cell.x, neighbor.cell.y) >= 3*params.minDistanceToObstacle)
             && distances.isCellInGrid(neighbor.cell.x, neighbor.cell.y))
@@ -183,18 +184,19 @@ void expandNode(PathNode &node,
                 openList.push(neighbor);
                 searchedList.push_back(neighbor);
             }
-            else
+            else //in searched list
             {
+                neighbor = getNodeFromList(neighbor, searchedList);
                 float newGCost;
                 if (distances(neighbor.cell.x, neighbor.cell.y) >= params.maxDistanceWithCost)
                 {
-                    newGCost = neighbor.gCost + distances.metersPerCell();
+                    newGCost = node.gCost + distances.metersPerCell() + distances.metersPerCell();
                 }
                 else
                 {
-                    newGCost = neighbor.gCost + distances.metersPerCell() + 10*abs(std::pow(params.maxDistanceWithCost 
-                                                                                    - distances(neighbor.cell.x, neighbor.cell.y), 
-                                                                                    params.distanceCostExponent));
+                    newGCost = node.gCost + distances.metersPerCell() + distances.metersPerCell() + 10*abs(std::pow(params.maxDistanceWithCost 
+                                                                                                        - distances(neighbor.cell.x, neighbor.cell.y), 
+                                                                                                        params.distanceCostExponent));
                 }
                 if (neighbor.gCost > newGCost)
                 {

@@ -5,13 +5,13 @@
 #include <cmath>
 #include <iostream>
 
-
+// 1 0.5 0.1 0.01
 ActionModel::ActionModel(void)
 : initialized_(false)
-, alpha1_(0.01f)   //0.01
-, alpha2_(0.01f)    //0.1
-, alpha3_(0.0025f) //0.0025
-, alpha4_(0.0001f) //0.0001
+, alpha1_(1.0f)   //0.01
+, alpha2_(0.8f)    //0.1
+, alpha3_(0.1f) //0.0025
+, alpha4_(0.001f) //0.0001
 {
     //////////////// TODO: Handle any initialization for your ActionModel /////////////////////////
     // std::random_device rd;
@@ -36,12 +36,12 @@ bool ActionModel::updateAction(const pose_xyt_t& odometry)
     rot1_ = angle_diff(std::atan2(deltaY, deltaX), previousOdometry_.theta);
     trans_ = std::sqrt(deltaX*deltaX + deltaY*deltaY);
     // std::cout << "trans_: " << trans_ << std::endl;
-    if (std::abs(trans_) < 0.0001f)
-    {
-        rot1_ = 0.0f;
-    }
+    // if (std::abs(trans_) < 0.0001f)
+    // {
+    //     rot1_ = 0.0f;
+    // }
     rot2_ = angle_diff(deltaTheta, rot1_);
-
+    moved_ = false;
     moved_ = (deltaX != 0.0f) || (deltaY != 0.0f) || (deltaTheta != 0.0f);
 
     rot1Std_ = std::sqrt(alpha1_ * rot1_*rot1_ + alpha2_ * trans_*trans_);
