@@ -29,6 +29,8 @@ Exploration::Exploration(int32_t teamNumber,
 , haveHomePose_(false)
 , lcmInstance_(lcmInstance)
 , pathReceived_(false)
+, firstPath(false)
+, disToPathEnd(1000)
 {
     assert(lcmInstance_);   // confirm a nullptr wasn't passed in
     
@@ -215,6 +217,7 @@ int8_t Exploration::executeInitializing(void)
 {
     /////////////////////////   Create the status message    //////////////////////////
     // Immediately transition to exploring once the first bit of data has arrived
+    planner_.setMap(currentMap_);
     exploration_status_t status;
     status.utime = utime_now();
     status.team_number = teamNumber_;
@@ -244,6 +247,27 @@ int8_t Exploration::executeExploringMap(bool initialize)
     *       -- You will likely be able to see the frontier before actually reaching the end of the path leading to it.
     */
     
+    frontiers_ = find_map_frontiers(currentMap_, currentPose_);
+    robot_path_t candidatePath = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
+    // if (candidatePath.path != currentPath_.path)
+    // {
+    //     currentPath_ = candidatePath;
+    // }
+    if (!firstPath)
+    {
+        currentPath_ = candidatePath;
+        firstPath = true;
+    }
+    double dx = currentPose_.x - currentPath_.path.back().x;
+    double dy = currentPose_.y - currentPath_.path.back().y;
+    disToPathEnd = std::sqrt(dx*dx + dy*dy);
+    std::cout << "***********disToPathEnd" << disToPathEnd  << "curPos: " << currentPose_.x << "EndPos: " << currentPath_.path.back().x << std::endl;
+    if (!planner_.isPathSafe(currentPath_) || (disToPathEnd < 0.1))
+    {
+        currentPath_ = candidatePath;
+    }
+    
+    // std::cout << "***********frontiers size: " << frontiers_.size() << std::endl;
     /////////////////////////////// End student code ///////////////////////////////
     
     /////////////////////////   Create the status message    //////////////////////////

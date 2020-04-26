@@ -102,9 +102,9 @@ robot_path_t search_for_path(pose_xyt_t start,
         path.path.back().theta = wrap_to_pi(std::atan2(dy2, dx2));
         path.path.push_back(goal);
 
-        std::cout << "***************" << path.path.size() << std::endl;
-        for (int j = 0; j<int(path.path.size()); j++)
-            std::cout << path.path[j].x << " " << path.path[j].y << " " << path.path[j].theta << std::endl;
+        // std::cout << "***************" << path.path.size() << std::endl;
+        // for (int j = 0; j<int(path.path.size()); j++)
+        //     std::cout << path.path[j].x << " " << path.path[j].y << " " << path.path[j].theta << std::endl;
     }
     else
     {
@@ -150,9 +150,9 @@ void expandNode(PathNode &node,
                 const ObstacleDistanceGrid& distances,
                 const SearchParams& params)
 {
-    int xDeltas[4] = {1, -1, 0, 0};
-    int yDeltas[4] = {0, 0, 1, -1};
-    for (int i = 0; i < 4; i++)
+    int xDeltas[8] = {1, -1, 0, 0, 1, 1, -1, -1};
+    int yDeltas[8] = {0, 0, 1, -1, 1, -1, 1, -1};
+    for (int i = 0; i < 8; i++)
     {
         PathNode neighbor;
         neighbor.gCost = node.gCost;
@@ -164,20 +164,20 @@ void expandNode(PathNode &node,
         //     neighbor = getNodeFromList(neighbor, searchedList);
         // }
         if ((!isNodeInList(neighbor, closedList)) 
-            && (distances(neighbor.cell.x, neighbor.cell.y) >= 3*params.minDistanceToObstacle)
+            && (distances(neighbor.cell.x, neighbor.cell.y) >= 2.5*params.minDistanceToObstacle)
             && distances.isCellInGrid(neighbor.cell.x, neighbor.cell.y))
         {
             if (!isNodeInList(neighbor, searchedList))
             {
                 if (distances(neighbor.cell.x, neighbor.cell.y) >= params.maxDistanceWithCost)
                 {
-                    neighbor.gCost += distances.metersPerCell();
+                    neighbor.gCost += distances.metersPerCell() + (i>=4)*0.414*distances.metersPerCell();
                 }
                 else
                 {
-                    neighbor.gCost = neighbor.gCost + distances.metersPerCell() + 10*abs(std::pow(params.maxDistanceWithCost 
-                                                                                         - distances(neighbor.cell.x, neighbor.cell.y), 
-                                                                                         params.distanceCostExponent));
+                    neighbor.gCost += distances.metersPerCell() + (i>=4)*0.414*distances.metersPerCell()+ 2*abs(std::pow(params.maxDistanceWithCost 
+                                                                                                            - distances(neighbor.cell.x, neighbor.cell.y), 
+                                                                                                            params.distanceCostExponent));
                 }
                 neighbor.hCost = calHCost(neighbor, goalNode, distances);
                 neighbor.parent = node.cell;
@@ -190,13 +190,13 @@ void expandNode(PathNode &node,
                 float newGCost;
                 if (distances(neighbor.cell.x, neighbor.cell.y) >= params.maxDistanceWithCost)
                 {
-                    newGCost = node.gCost + distances.metersPerCell() + distances.metersPerCell();
+                    newGCost = node.gCost + distances.metersPerCell() + (i>=4)*0.414*distances.metersPerCell();
                 }
                 else
                 {
-                    newGCost = node.gCost + distances.metersPerCell() + distances.metersPerCell() + 10*abs(std::pow(params.maxDistanceWithCost 
-                                                                                                        - distances(neighbor.cell.x, neighbor.cell.y), 
-                                                                                                        params.distanceCostExponent));
+                    newGCost = node.gCost + distances.metersPerCell() + (i>=4)*0.414*distances.metersPerCell() + 2*abs(std::pow(params.maxDistanceWithCost 
+                                                                                                                    - distances(neighbor.cell.x, neighbor.cell.y), 
+                                                                                                                    params.distanceCostExponent));
                 }
                 if (neighbor.gCost > newGCost)
                 {

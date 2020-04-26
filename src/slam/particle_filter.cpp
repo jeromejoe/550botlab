@@ -60,7 +60,7 @@ pose_xyt_t ParticleFilter::updateFilter(const pose_xyt_t&      odometry,
     return posteriorPose_;
 }
 
-pose_xyt_t ParticleFilter::updateFilterActionOnly(const pose_xyt_t&      odometry)
+pose_xyt_t ParticleFilter::updateFilterActionOnly(const pose_xyt_t& odometry)
 {
     // Only update the particles if motion was detected. If the robot didn't move, then
     // obviously don't do anything.
@@ -150,16 +150,16 @@ std::vector<particle_t> ParticleFilter::computeNormalizedPosterior(const std::ve
     for (auto& p : posterior)
     {
         p.weight = sensorModel_.likelihood(p, laser, map);
-        std::cout << p.weight << std::endl;
+        // std::cout << p.weight << std::endl;
         sumWeight += p.weight;
     }
-    std::cout << "********************************************\n";
+    // std::cout << "********************************************\n";
     for (auto& p : posterior)
     {
         p.weight = p.weight / sumWeight;
-        std::cout << p.weight << std::endl;
+        // std::cout << p.weight << std::endl;
     }
-    std::cout<<"---------------------------------------------"<<std::endl;
+    // std::cout<<"---------------------------------------------"<<std::endl;
 
     return posterior;
 }

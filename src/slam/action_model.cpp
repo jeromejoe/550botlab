@@ -5,13 +5,13 @@
 #include <cmath>
 #include <iostream>
 
-// 1 0.5 0.1 0.01
+// 0.5 0.01 0.02 0.001
 ActionModel::ActionModel(void)
 : initialized_(false)
-, alpha1_(1.0f)   //0.01
-, alpha2_(0.8f)    //0.1
-, alpha3_(0.1f) //0.0025
-, alpha4_(0.001f) //0.0001
+, alpha1_(0.001f)   //0.01
+, alpha2_(0.001f)    //0.1
+, alpha3_(0.0002f) //0.0025
+, alpha4_(0.0001f) //0.0001
 {
     //////////////// TODO: Handle any initialization for your ActionModel /////////////////////////
     // std::random_device rd;

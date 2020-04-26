@@ -124,7 +124,8 @@ private:
     int8_t executeFailed(bool initialize);
     
     /////////// TODO: Add any additional methods you might need here //////////////
-    
+    bool firstPath;
+    double disToPathEnd;
     /////////////////////////// End student code ///////////////////////////////
 };
 

@@ -43,47 +43,56 @@ double SensorModel::scoreRay(const adjusted_ray_t& ray, const OccupancyGrid& map
     // std::cout << int(tempOdds) << std::endl;
     
     // apply simplified likelihood field model
-    if (Odds >= 100)
+    if (Odds >= 120)
     {
         return 4*Odds;
     }
-    else if (Odds >= 50)
+    else if (Odds >= 90)
     {
         return 2*Odds;
     }
-
-    else if (Odds < 50)
+    else if (Odds >= 50)
     {
+        return 1.5*Odds;
+    }
+    
+    else if (Odds < 50)
+    {   
+        double stepLength = 0.5;
         //take one step closer to the origin
         Point<int> rayEnd1;
         rayEnd1.x = static_cast<int>(
-            (ray.range - 1.0*map.metersPerCell()) * std::cos(ray.theta) * map.cellsPerMeter() + rayStart.x);
+            (ray.range - stepLength*map.metersPerCell()) * std::cos(ray.theta) * map.cellsPerMeter() + rayStart.x);
         rayEnd1.y = static_cast<int>(
-            (ray.range - 1.0*map.metersPerCell()) * std::sin(ray.theta) * map.cellsPerMeter() + rayStart.y);
+            (ray.range - stepLength*map.metersPerCell()) * std::sin(ray.theta) * map.cellsPerMeter() + rayStart.y);
         double Odds1 = 0.0;
         if (map.isCellInGrid(rayEnd1.x, rayEnd1.y))
             Odds1 = static_cast<int>(map(rayEnd1.x, rayEnd1.y));
 
-        if (Odds1 >= 100)
-            return 1 * Odds1;
+        if (Odds1 >= 120)
+            return 2*Odds1;
+        else if (Odds1 >= 90)
+            return 1*Odds1;
         else if (Odds1 >= 50)
-            return 0.3*Odds;
+            return 0.5*Odds1;
 
         //take one step further and check if occupied there
         Point<int> rayEnd2;
         rayEnd2.x = static_cast<int>(
-            (ray.range + 1.0*map.metersPerCell()) * std::cos(ray.theta) * map.cellsPerMeter() + rayStart.x);
+            (ray.range + stepLength*map.metersPerCell()) * std::cos(ray.theta) * map.cellsPerMeter() + rayStart.x);
         rayEnd2.y = static_cast<int>(
-            (ray.range + 1.0*map.metersPerCell()) * std::sin(ray.theta) * map.cellsPerMeter() + rayStart.y);
+            (ray.range + stepLength*map.metersPerCell()) * std::sin(ray.theta) * map.cellsPerMeter() + rayStart.y);
         double Odds2 = 0.0;
         if (map.isCellInGrid(rayEnd2.x, rayEnd2.y))
             Odds2 = static_cast<int>(map(rayEnd2.x, rayEnd2.y));
         
-        if (Odds2 >= 100)
-            return 1 * Odds2;
+        if (Odds2 >= 120)
+            return 2*Odds2;
+        else if (Odds2 >= 90)
+            return 1*Odds2;
         else if (Odds2 >= 50)
-            return 0.3 * Odds2;
+            return 0.5*Odds2;
     }
-
+    
     return 0.0;
 }

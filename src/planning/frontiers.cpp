@@ -6,6 +6,7 @@
 #include <queue>
 #include <set>
 #include <cassert>
+#include <algorithm>
 
 
 bool is_frontier_cell(int x, int y, const OccupancyGrid& map);
@@ -99,7 +100,101 @@ robot_path_t plan_path_to_frontier(const std::vector<frontier_t>& frontiers,
     *   - The cells along the frontier might not be in the configuration space of the robot, so you won't necessarily
     *       be able to drive straight to a frontier cell, but will need to drive somewhere close.
     */
+    // ObstacleDistanceGrid obstacleDistances = planner.obstacleDistances();  // >0.25 to be a valid free space
     robot_path_t emptyPath;
+
+    std::vector<Point<float>> frontierMidPoints;
+    std::vector<float> disVec;
+    //find a target point for each frontier
+    for (auto& frontier : frontiers)
+    {
+        float sumX = 0.0, sumY = 0.0;
+        for (auto& point : frontier.cells)
+        {
+            // float dx = point.x - robotPose.x;
+            // float dy = point.y - robotPose.y;
+            // float distance = std::sqrt(dx*dx + dy*dy);
+            // distances.push_back(distance);
+            sumX += point.x;
+            sumY += point.y;
+        }
+        Point<float> midPoint;
+        midPoint.x = sumX / frontier.cells.size();
+        midPoint.y = sumY / frontier.cells.size();
+        frontierMidPoints.push_back(midPoint);
+        float dx = midPoint.x - robotPose.x;
+        float dy = midPoint.y - robotPose.y;
+        float distance = std::sqrt(dx*dx + dy*dy);
+        disVec.push_back(distance);
+        
+    }
+    int minElementIndex = std::min_element(disVec.begin(),disVec.end()) - disVec.begin(); // find closest frontier
+    std::cout << "CCCCCCChosing frontier: " << minElementIndex << std::endl;
+    std::vector<robot_path_t> pathes;
+    for (auto& targetPoint : frontiers[minElementIndex].cells)
+    {
+        Point<int> targetCell = global_position_to_grid_cell(targetPoint, map);
+        std::cout << "*******TTTTargetCell: " << targetCell << std::endl;
+        
+        // create a rectangle searching area to find free cell
+        pose_xyt_t goal = robotPose;
+        int recSize = 8;
+        for (int i = recSize; i >= -recSize; i--)
+        {
+            for (int j = recSize; j >= -recSize; j--)
+            {
+                std::cout << "iiiiiijjjjjj  " << i << ". " << j << std::endl;
+                Point<int> cell;
+                cell.x = targetCell.x + j;
+                cell.y = targetCell.y + i;
+                Point<double> cellGlobalPos = grid_position_to_global_position(cell, map);
+                goal.x = cellGlobalPos.x;
+                goal.y = cellGlobalPos.y;
+                robot_path_t path = planner.planPath(robotPose, goal);
+                if (path.path_length < 2) continue;
+                // goal cannot be too close
+                float dx = path.path.back().x - robotPose.x;
+                float dy = path.path.back().y - robotPose.y;
+                float diss = std::sqrt(dx*dx + dy*dy);
+                if (diss < 0.3) continue;
+                std::cout << "~~~~~~~~~planner.isValidGoal(goal): " << planner.isValidGoal(goal) << "planner.isPathSafe(path): " << planner.isPathSafe(path) << std::endl;
+                // if (planner.isValidGoal(goal) && planner.isPathSafe(path))
+                // {
+                //     return path;
+                // }
+                pathes.push_back(path);
+            }
+        }
+    }
+    /*
+    robot_path_t maxPath;
+    if (pathes.size() != 0)
+    {
+        maxPath = pathes[0];
+        for (auto& p : pathes)
+        {
+            if (p.path_length > maxPath.path_length)
+            {
+                maxPath = p;
+            }
+        }
+        return maxPath;
+    }
+    */
+    robot_path_t minPath;
+    std::cout << "----------------pathNum: " << pathes.size() << std::endl;
+    if (pathes.size() != 0)
+    {
+        minPath = pathes[0];
+        for (auto& p : pathes)
+        {
+            if (p.path_length < minPath.path_length)
+            {
+                minPath = p;
+            }
+        }
+        return minPath;
+    }
     
     return emptyPath;
 }
