@@ -38,6 +38,7 @@ robot_path_t MotionPlanner::planPath(const pose_xyt_t& start,
     }
     
     // Otherwise, use A* to find the path
+    // std::cout << "!!!!Enter planPath" << std::endl;
     return search_for_path(start, goal, distances_, searchParams);
 }
 
@@ -62,8 +63,8 @@ bool MotionPlanner::isValidGoal(const pose_xyt_t& goal) const
     if(num_frontiers != 1 && distanceFromPrev < 2 * searchParams_.minDistanceToObstacle) return false;
 
     auto goalCell = global_position_to_grid_cell(Point<double>(goal.x, goal.y), distances_);
-    std::cout << "***isCellInGrid: " << distances_.isCellInGrid(goalCell.x, goalCell.y) 
-            << " --goalCell: " << goalCell.x << " ," << goalCell.y << std::endl;
+    // std::cout << "***isCellInGrid: " << distances_.isCellInGrid(goalCell.x, goalCell.y) 
+    //         << " --goalCell: " << goalCell.x << " ," << goalCell.y << std::endl;
     // A valid goal is in the grid
     if(distances_.isCellInGrid(goalCell.x, goalCell.y))
     {
@@ -71,7 +72,7 @@ bool MotionPlanner::isValidGoal(const pose_xyt_t& goal) const
         // Add an extra cell to account for discretization error and make motion a little safer by not trying to
         // completely snuggle up against the walls in the motion plan
         // std::cout << "?????????????????????????" << (distances_(goalCell.x, goalCell.y) > 0.25) << std::endl;
-        return distances_(goalCell.x, goalCell.y) > 0.25;
+        return distances_(goalCell.x, goalCell.y) >= 0.25;
     }
     // std::cout << "$$$$$$$$$$$$$$$$$$$" << std::endl;
     // A goal must be in the map for the robot to reach it

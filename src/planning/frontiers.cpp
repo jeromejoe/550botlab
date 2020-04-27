@@ -101,7 +101,7 @@ robot_path_t plan_path_to_frontier(const std::vector<frontier_t>& frontiers,
     *       be able to drive straight to a frontier cell, but will need to drive somewhere close.
     */
     // ObstacleDistanceGrid obstacleDistances = planner.obstacleDistances();  // >0.25 to be a valid free space
-    robot_path_t emptyPath;
+    // robot_path_t emptyPath;
 
     std::vector<Point<float>> frontierMidPoints;
     std::vector<float> disVec;
@@ -129,7 +129,81 @@ robot_path_t plan_path_to_frontier(const std::vector<frontier_t>& frontiers,
         
     }
     int minElementIndex = std::min_element(disVec.begin(),disVec.end()) - disVec.begin(); // find closest frontier
-    std::cout << "CCCCCCChosing frontier: " << minElementIndex << std::endl;
+    Point<float> targetPoint = frontierMidPoints[minElementIndex]; // find the midpoint of that frontier
+    std::cout << "CCCCCCChosing frontier: " << minElementIndex << " Midpoint: " << targetPoint << std::endl;
+    Point<int> targetCell = global_position_to_grid_cell(targetPoint, map);
+    // use BFS to find a nearest free space
+    std::queue<Point<int>> cellQueue;
+    std::set<Point<int>> visitedList;
+    cellQueue.push(targetCell);
+    bool foundCell = false;
+    pose_xyt_t tempGoal = robotPose;
+    robot_path_t path;
+    const int xDeltas[] = { 1, 1, 0, -1, -1, -1, 0, 1 };
+    const int yDeltas[] = { 0, 1, 1, 1, 0, -1, -1, -1 };
+
+    // bool test_ = true, test2_ = true;
+
+    while (!cellQueue.empty() && !foundCell)
+    {
+        Point<int> curCell = cellQueue.front();
+        cellQueue.pop();
+        
+        for (int i=0; i<8; i++)
+        {
+            Point<int> neighborCell(curCell.x + xDeltas[i], curCell.y + yDeltas[i]);
+            
+            // if (test_) {
+            //     std::cout << "-------------------" << neighborCell << " [114, 112] " << int(map(114,112)) << std::endl;
+            //     test_ = false; }
+
+            Point<float> neighborGlobalPos = grid_position_to_global_position(neighborCell, map);
+            tempGoal.x = neighborGlobalPos.x;
+            tempGoal.y = neighborGlobalPos.y;
+            // if (test2_) {
+            //     std::cout << "----------------tempGoal " << tempGoal.x << ", " << tempGoal.y << std::endl;
+            //     test2_ = false;
+            // }
+            
+            if(visitedList.find(neighborCell) != visitedList.end() || !map.isCellInGrid(neighborCell.x, neighborCell.y))
+            {
+                continue;
+            }
+
+            else if (planner.isValidGoal(tempGoal))
+            {
+                std::cout << "!!!!!!!Enter planner if" << std::endl;
+                path = planner.planPath(robotPose, tempGoal);
+                std::cout << "========tempGoal: " << neighborCell << std::endl;
+                if (path.path_length <= 3)
+                {
+                    visitedList.insert(neighborCell);
+                    cellQueue.push(neighborCell);
+                    continue;
+                }
+                else
+                {
+                    foundCell = true;
+                    return path;
+                }     
+            }
+
+            else
+            {
+                std::cout << "+++++++++inserting cell to viseitedlist: " << neighborCell << std::endl;
+                std::cout << "Visited list: " << visitedList.size() << std::endl;
+                visitedList.insert(neighborCell);
+                cellQueue.push(neighborCell);
+            }
+        }   
+        
+    }
+    std::cout << "*******Visited list: " << visitedList.size() << std::endl;
+    robot_path_t failPath;
+    failPath.path.push_back(robotPose);
+    return failPath;
+    
+    /*
     std::vector<robot_path_t> pathes;
     for (auto& targetPoint : frontiers[minElementIndex].cells)
     {
@@ -181,6 +255,7 @@ robot_path_t plan_path_to_frontier(const std::vector<frontier_t>& frontiers,
         return maxPath;
     }
     */
+    /*
     robot_path_t minPath;
     std::cout << "----------------pathNum: " << pathes.size() << std::endl;
     if (pathes.size() != 0)
@@ -195,8 +270,9 @@ robot_path_t plan_path_to_frontier(const std::vector<frontier_t>& frontiers,
         }
         return minPath;
     }
+    */
     
-    return emptyPath;
+    // return emptyPath;
 }
 
 

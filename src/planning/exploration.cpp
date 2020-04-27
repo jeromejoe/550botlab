@@ -248,24 +248,24 @@ int8_t Exploration::executeExploringMap(bool initialize)
     */
     
     frontiers_ = find_map_frontiers(currentMap_, currentPose_);
-    robot_path_t candidatePath = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
-    // if (candidatePath.path != currentPath_.path)
-    // {
-    //     currentPath_ = candidatePath;
-    // }
+    planner_.setMap(currentMap_);
     if (!firstPath)
     {
-        currentPath_ = candidatePath;
+        currentPath_ = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
         firstPath = true;
     }
-    double dx = currentPose_.x - currentPath_.path.back().x;
-    double dy = currentPose_.y - currentPath_.path.back().y;
-    disToPathEnd = std::sqrt(dx*dx + dy*dy);
-    std::cout << "***********disToPathEnd" << disToPathEnd  << "curPos: " << currentPose_.x << "EndPos: " << currentPath_.path.back().x << std::endl;
-    if (!planner_.isPathSafe(currentPath_) || (disToPathEnd < 0.1))
+    else
     {
-        currentPath_ = candidatePath;
+        double dx = currentPose_.x - currentPath_.path.back().x;
+        double dy = currentPose_.y - currentPath_.path.back().y;
+        disToPathEnd = std::sqrt(dx*dx + dy*dy);
+        std::cout << "***********disToPathEnd" << disToPathEnd  << "curPosX: " << currentPose_.x << "EndPosX: " << currentPath_.path.back().x << std::endl;
+        if (!planner_.isPathSafe(currentPath_) || (disToPathEnd < 0.3))
+        {
+            currentPath_ = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
+        }
     }
+
     
     // std::cout << "***********frontiers size: " << frontiers_.size() << std::endl;
     /////////////////////////////// End student code ///////////////////////////////
