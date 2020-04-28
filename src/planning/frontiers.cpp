@@ -172,10 +172,10 @@ robot_path_t plan_path_to_frontier(const std::vector<frontier_t>& frontiers,
 
             else if (planner.isValidGoal(tempGoal))
             {
-                std::cout << "!!!!!!!Enter planner if" << std::endl;
+                // std::cout << "!!!!!!!Enter planner if" << std::endl;
                 path = planner.planPath(robotPose, tempGoal);
                 std::cout << "========tempGoal: " << neighborCell << std::endl;
-                if (path.path_length <= 3)
+                if (path.path_length <= 6)
                 {
                     visitedList.insert(neighborCell);
                     cellQueue.push(neighborCell);
@@ -190,8 +190,8 @@ robot_path_t plan_path_to_frontier(const std::vector<frontier_t>& frontiers,
 
             else
             {
-                std::cout << "+++++++++inserting cell to viseitedlist: " << neighborCell << std::endl;
-                std::cout << "Visited list: " << visitedList.size() << std::endl;
+                // std::cout << "+++++++++inserting cell to viseitedlist: " << neighborCell << std::endl;
+                // std::cout << "Visited list: " << visitedList.size() << std::endl;
                 visitedList.insert(neighborCell);
                 cellQueue.push(neighborCell);
             }
@@ -281,7 +281,8 @@ bool is_frontier_cell(int x, int y, const OccupancyGrid& map)
     // A cell if a frontier if it has log-odds 0 and a neighbor has log-odds < 0
     
     // A cell must be in the grid and must have log-odds 0 to even be considered as a frontier
-    if(!map.isCellInGrid(x, y) || (map(x, y) != 0))
+    if(!map.isCellInGrid(x, y) || (map(x, y) > 0) || (map(x, y) < -4))
+    // if(!map.isCellInGrid(x, y) || (map(x, y) != 0))
     {
         return false;
     }
@@ -294,7 +295,7 @@ bool is_frontier_cell(int x, int y, const OccupancyGrid& map)
     {
         // If any of the neighbors are free, then it's a frontier
         // Note that logOdds returns 0 for out-of-map cells, so no explicit check is needed.
-        if(map.logOdds(x + xDeltas[n], y + yDeltas[n]) < 0)
+        if(map.logOdds(x + xDeltas[n], y + yDeltas[n]) < -5)
         {
             return true;
         }

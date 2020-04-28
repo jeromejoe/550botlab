@@ -31,6 +31,7 @@ Exploration::Exploration(int32_t teamNumber,
 , pathReceived_(false)
 , firstPath(false)
 , disToPathEnd(1000)
+, thresh(0)
 {
     assert(lcmInstance_);   // confirm a nullptr wasn't passed in
     
@@ -247,10 +248,11 @@ int8_t Exploration::executeExploringMap(bool initialize)
     *       -- You will likely be able to see the frontier before actually reaching the end of the path leading to it.
     */
     
-    frontiers_ = find_map_frontiers(currentMap_, currentPose_);
+    // frontiers_ = find_map_frontiers(currentMap_, currentPose_);
     planner_.setMap(currentMap_);
     if (!firstPath)
     {
+        frontiers_ = find_map_frontiers(currentMap_, currentPose_);
         currentPath_ = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
         firstPath = true;
     }
@@ -259,9 +261,11 @@ int8_t Exploration::executeExploringMap(bool initialize)
         double dx = currentPose_.x - currentPath_.path.back().x;
         double dy = currentPose_.y - currentPath_.path.back().y;
         disToPathEnd = std::sqrt(dx*dx + dy*dy);
-        std::cout << "***********disToPathEnd" << disToPathEnd  << "curPosX: " << currentPose_.x << "EndPosX: " << currentPath_.path.back().x << std::endl;
+        // std::cout << "***********disToPathEnd" << disToPathEnd  << "curPosX: " << currentPose_.x << "EndPosX: " << currentPath_.path.back().x << std::endl;
         if (!planner_.isPathSafe(currentPath_) || (disToPathEnd < 0.3))
+        // if (disToPathEnd < 0.3)
         {
+            frontiers_ = find_map_frontiers(currentMap_, currentPose_);
             currentPath_ = plan_path_to_frontier(frontiers_, currentPose_, currentMap_, planner_);
         }
     }
@@ -277,9 +281,18 @@ int8_t Exploration::executeExploringMap(bool initialize)
     status.state = exploration_status_t::STATE_EXPLORING_MAP;
     
     // If no frontiers remain, then exploration is complete
-    if(frontiers_.empty())
+    if(frontiers_.empty() && disToPathEnd < 0.3)
     {
-        status.status = exploration_status_t::STATUS_COMPLETE;
+        thresh++;
+        if (thresh > 15)
+        {
+            status.status = exploration_status_t::STATUS_COMPLETE;
+        }
+        else
+        {
+            status.status = exploration_status_t::STATUS_IN_PROGRESS;
+        }
+           
     }
     // Else if there's a path to follow, then we're still in the process of exploring
     else if(currentPath_.path.size() > 1)

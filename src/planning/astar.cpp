@@ -17,7 +17,7 @@ struct PathNode
 
     bool operator<(const PathNode& rhs) const
     {
-        return (gCost + hCost) > (rhs.gCost + rhs.hCost);
+        return (gCost + hCost) < (rhs.gCost + rhs.hCost);
     }
 
     bool operator==(const PathNode& rhs) const
@@ -36,7 +36,7 @@ PathNode getNodeFromList(PathNode& node, std::vector<PathNode>& list);
 float calHCost(PathNode& node, PathNode& goal, const ObstacleDistanceGrid& grid);
 void expandNode(PathNode &node,
                 PathNode &goalNode,
-                std::priority_queue<PathNode> &openList,
+                std::set<PathNode> &openList,
                 std::vector<PathNode> &closedList,
                 std::vector<PathNode> &searcheddList,
                 const ObstacleDistanceGrid& distances,
@@ -70,10 +70,10 @@ robot_path_t search_for_path(pose_xyt_t start,
 
     //construct lists and priority queue
     std::vector<PathNode> closedList, searchedList;
-    std::priority_queue<PathNode> openList;
-    openList.push(startNode);
-    currentNode = openList.top();
-    openList.pop();
+    std::set<PathNode> openList;
+    openList.insert(startNode);
+    currentNode = *openList.begin();
+    openList.erase(openList.begin());
     bool isExtracted = false;
     bool isPathFound = false;
     while (currentNode != goalNode)
@@ -85,20 +85,22 @@ robot_path_t search_for_path(pose_xyt_t start,
         {
             break;
         }
-        currentNode = openList.top();
-        openList.pop();
+        // currentNode = openList.top();
+        // openList.pop();
+        currentNode = *openList.begin();
+        openList.erase(openList.begin());
         // std::cout << "!!!!!!!!!!!curnode: " << currentNode.cell << std::endl;
         if (currentNode == goalNode)
         {
             isPathFound = true;
-            std::cout << "!!!!isPathFound: " << isPathFound << std::endl;
+            // std::cout << "!!!!isPathFound: " << isPathFound << std::endl;
         }
     }
     if (isPathFound)
     {   
         // std::cout << "!!!!isExtraced????: " << isExtracted << std::endl;
         isExtracted = extractPath(currentNode, startNode, closedList, path, distances);
-        std::cout << "!!!!isExtraced: " << isExtracted << std::endl;
+        // std::cout << "!!!!isExtraced: " << isExtracted << std::endl;
         //set start theta
         // float dx1 = path.path[1].x - path.path[0].x;
         // float dy1 = path.path[1].y - path.path[0].y;
@@ -162,7 +164,7 @@ PathNode getNodeFromList(PathNode& node, std::vector<PathNode>& list)
 
 void expandNode(PathNode &node,
                 PathNode &goalNode,
-                std::priority_queue<PathNode> &openList,
+                std::set<PathNode> &openList,
                 std::vector<PathNode> &closedList,
                 std::vector<PathNode> &searchedList,
                 const ObstacleDistanceGrid& distances,
@@ -199,7 +201,7 @@ void expandNode(PathNode &node,
                 }
                 neighbor.hCost = calHCost(neighbor, goalNode, distances);
                 neighbor.parent = node.cell;
-                openList.push(neighbor);
+                openList.insert(neighbor);
                 searchedList.push_back(neighbor);
             }
             else //in searched list
@@ -220,7 +222,8 @@ void expandNode(PathNode &node,
                 {
                     neighbor.gCost = newGCost;
                     neighbor.parent = node.cell;
-                    openList.push(neighbor);
+                    openList.erase(neighbor);
+                    openList.insert(neighbor);
                 }
             }
         }
@@ -246,7 +249,7 @@ bool extractPath(PathNode& node,
     
     while (curNode != startNode)
     {
-        std::cout << "Enter while" << std::endl;
+        // std::cout << "Enter while" << std::endl;
         tempList.push_back(curNode);
         PathNode parentNode;
         parentNode.cell = curNode.parent;
@@ -254,7 +257,7 @@ bool extractPath(PathNode& node,
         curNode = parentNode;
     }
     std::reverse(tempList.begin(), tempList.end());
-    std::cout << "reverse done" << std::endl;
+    // std::cout << "reverse done" << std::endl;
     int n = tempList.size();
     pose_xyt_t nextPose, prevPose;
     prevPose.x = grid.originInGlobalFrame().x + startNode.cell.x*grid.metersPerCell();

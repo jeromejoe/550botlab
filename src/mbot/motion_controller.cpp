@@ -66,17 +66,18 @@ public:
     mbot_motor_command_t updateCommand(void)
     {
         //////////// TODO: Implement your feedback controller here. //////////////////////
-        
-        const float kPGain = 0.27f;
-        const float kDGain = 0.0f;
-        const float kIGain = 0.0003f;
+        double coef = 8;
 
-        const float kPTurnGain = 0.4f;
-        const float kDesiredSpeed = 0.2f;
-        const float kMinSpeed = 0.1f;
-        const float kTurnSpeed = 1.0f;
-        const float kTurnMaxSpeed = 0.6f;
-        const float slowDownDistance = 0.4f;
+        const float kPGain = 0.27f *coef;
+        const float kDGain = 0.0f;
+        const float kIGain = 0.0003f *coef;
+
+        const float kPTurnGain = 0.4f *coef;
+        const float kDesiredSpeed = 0.2f *coef;
+        const float kMinSpeed = 0.1f *coef;
+        const float kTurnSpeed = 1.0f *coef;
+        const float kTurnMaxSpeed = 0.6f *coef;
+        const float slowDownDistance = 0.4f *coef;
         
         mbot_motor_command_t cmd;
 

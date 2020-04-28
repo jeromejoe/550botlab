@@ -109,6 +109,6 @@ void MotionPlanner::setParams(const MotionPlannerParams& params)
     // searchParams_.minDistanceToObstacle = 2*params_.robotRadius;
     searchParams_.minDistanceToObstacle = 0.1; //0.1
     // searchParams_.maxDistanceWithCost = 10 * searchParams_.minDistanceToObstacle;
-    searchParams_.maxDistanceWithCost = 0.35;  //0.35
+    searchParams_.maxDistanceWithCost = 0.8;  //0.35
     searchParams_.distanceCostExponent = 1;
 }

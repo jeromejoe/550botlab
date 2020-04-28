@@ -16,7 +16,7 @@ double SensorModel::likelihood(const particle_t& sample, const lidar_t& scan, co
     
     double scanScore = 0.0;
     double rayScore = 0.0;
-    MovingLaserScan movingScan(scan, sample.parent_pose, sample.pose);
+    MovingLaserScan movingScan(scan, sample.parent_pose, sample.pose, 2);
 
     for (const auto& ray : movingScan)
     {
